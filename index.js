@@ -26,7 +26,7 @@ let persons = [
 const getId = () => {
     return Math.max(...persons.map(p => p.id)) + 1
 }
-
+app.use(express.static('build'))
 app.use(cors())
 app.use(express.json())
 
