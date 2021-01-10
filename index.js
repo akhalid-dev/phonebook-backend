@@ -1,9 +1,9 @@
 require('dotenv').config()
-const express = require('express');
+const express = require('express')
 const app = express()
-const PORT = process.env.PORT || 3002;
+const PORT = process.env.PORT || 3001
 const cors = require('cors')
-const morgan = require('morgan');
+const morgan = require('morgan')
 
 const Person = require('./models/person')
 
@@ -20,25 +20,27 @@ app.get('/api/persons', (req, res) => {
     .then(people => {
         res.json(people)
     })
-    
 })
 
 app.get('/api/persons/:id', (req, res) => {
-    const id = Number(req.params.id)
-    const person = persons.filter(p => p.id === id)
-    
-    if (!person || person.length == 0) {
+    const id = req.params.id
+    Person.findById(id)
+    .then(person => {
+        res.json(person)
+    })
+    .catch(err => {
         return res.status(404).end()
-    }
-    res.json(person)
-
+    })
 
 })
 
-app.delete('/api/persons/:id', (req, res) => {
-    const id = Number(req.params.id)
-    persons = persons.filter(p => p.id !== id)
-    res.status(204).end()
+app.delete('/api/persons/:id', (req, res, next) => {
+    Person.findByIdAndRemove(req.params.id)
+    .then(result => {
+        res.status(204).end()
+    })
+    .catch(err => next(err))
+
 })
 
 app.post('/api/persons', (req, res) => {
@@ -67,6 +69,7 @@ app.get('/api/info', (req, res) => {
         ${new Date()}
     </div>`)
 })
+
 
 const unknownEndpoint = (request, response) => {
     response.status(404).send({ error: 'unknown endpoint' })
