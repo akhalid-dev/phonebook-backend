@@ -15,22 +15,26 @@ morgan.token('body', (req, res) => JSON.stringify(req.body))
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :body'))
 
 
-app.get('/api/persons', (req, res) => {
+app.get('/api/persons', (req, res, next) => {
     Person.find({})
     .then(people => {
         res.json(people)
     })
+    .catch(error => next(error))
 })
 
 app.get('/api/persons/:id', (req, res) => {
     const id = req.params.id
     Person.findById(id)
     .then(person => {
-        res.json(person)
+        if (person) {
+            res.json(person)
+        } else {
+            res.status(404).end()
+        }
+        
     })
-    .catch(err => {
-        return res.status(404).end()
-    })
+    .catch(error => next(error))
 
 })
 
@@ -60,6 +64,21 @@ app.post('/api/persons', (req, res) => {
     .then(person => {
         res.json(person)
     })
+    .catch(error => next(error))
+})
+
+app.put('/api/persons/:id', (req, res, error) => {
+    const updatedPerson = req.body
+    Person.findById(id)
+    .then(person => {
+        if (person) {
+            res.json(person)
+        } else {
+            res.status(404).end()
+        }
+        
+    })
+    .catch(error => next(error))
 })
 
 app.get('/api/info', (req, res) => {
@@ -70,12 +89,17 @@ app.get('/api/info', (req, res) => {
     </div>`)
 })
 
-
 const unknownEndpoint = (request, response) => {
     response.status(404).send({ error: 'unknown endpoint' })
 }
-  
 app.use(unknownEndpoint)
+
+const errorHandler = (error, req, res, next) => {
+    console.log(error.message);
+    next(error)
+
+}
+app.use(errorHandler)
 
 app.listen(PORT, () => {
     console.log(`Server started on PORT: ${PORT}.`);
